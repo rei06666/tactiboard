@@ -1,9 +1,10 @@
 import React from 'react'
-import { useForm } from 'react-hook-form'
+import { set, useForm } from 'react-hook-form'
 
 type Props = {
     setMessage: React.Dispatch<React.SetStateAction<{ type: string; text: string; }>>,
-    setFormName: React.Dispatch<React.SetStateAction<string>>
+    setFormName: React.Dispatch<React.SetStateAction<string>>,
+    setUserName: React.Dispatch<React.SetStateAction<string>>
 }
 
 type FormValues = {
@@ -11,7 +12,7 @@ type FormValues = {
 }
 
 const SendVerificationForm: React.FC<Props> = (props) => {
-  const { setMessage, setFormName } = props
+  const { setMessage, setFormName, setUserName } = props
 
   const {
       register,
@@ -22,25 +23,27 @@ const SendVerificationForm: React.FC<Props> = (props) => {
   // 確認コードを送信
   const sendVerification = async (data: FormValues) => {
     try {
-      // const response = await fetch(`${process.env.REACT_APP_API_PATH}/verify-code`, {
-      //     method: 'POST',
-      //     headers: {
-      //         'Content-Type': 'application/json',
-      //     },
-      //     body: JSON.stringify({
-      //         name: data.name
-      //     }),
-      // });
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_API_PATH}/user/verifycode`, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+              name: data.name
+          }),
+      });
 
-      // if (!response.ok) {
-      //     throw new Error();
-      // }
+      if (!response.ok) {
+          throw new Error();
+      }
 
-      setMessage({ type: "success", text: "sent verification code to email" });
+      setMessage({ type: "success", text: "sent verification to email" });
+      setUserName(data.name)
+      setFormName("passwordchange")
 
     } catch (error) {
       console.error(error);
-      setMessage({ type: "error", text: "failed to send verification code" });
+      setMessage({ type: "error", text: "failed to send verification" });
     }
   }
 
