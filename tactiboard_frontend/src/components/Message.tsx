@@ -5,7 +5,7 @@ type Props = {
     text: string
 }
 
-const LoginMessage: React.FC<Props> = (props) => {
+const Message: React.FC<Props> = (props) => {
     const { type, text } = props
     return (
         <div >
@@ -27,4 +27,4 @@ const LoginMessage: React.FC<Props> = (props) => {
     )
 }
 
-export default LoginMessage
+export default Message
