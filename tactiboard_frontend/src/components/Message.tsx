@@ -8,7 +8,7 @@ type Props = {
 const LoginMessage: React.FC<Props> = (props) => {
     const { type, text } = props
     return (
-        <div className='text-base w-2/3 mx-auto mb-1'>
+        <div >
             {type === "success" && 
             <div role="alert" className="alert alert-success py-0.5 animate-fadeIn flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0 stroke-current mr-2" fill="none" viewBox="0 0 24 24">

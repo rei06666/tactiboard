@@ -1,5 +1,6 @@
 import React from 'react'
-import { set, useForm } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
+import { MESSAGES } from '../../consts/consts'
 
 type Props = {
     setMessage: React.Dispatch<React.SetStateAction<{ type: string; text: string; }>>,
@@ -37,13 +38,13 @@ const SendVerificationForm: React.FC<Props> = (props) => {
           throw new Error();
       }
 
-      setMessage({ type: "success", text: "sent verification to email" });
+      setMessage(MESSAGES.VERIFICATION_SENT);
       setUserName(data.name)
       setFormName("passwordchange")
 
     } catch (error) {
       console.error(error);
-      setMessage({ type: "error", text: "failed to send verification" });
+      setMessage(MESSAGES.VERIFICATION_FAILURE);
     }
   }
 

@@ -1,19 +1,22 @@
 import React from 'react'
 import { useForm } from 'react-hook-form'
+import { MESSAGES } from '../../consts/consts'
+
 
 type FormValues = {
     name: string
     password: string
+    email: string
 }
 
 type Props = {
-    setMessage: React.Dispatch<React.SetStateAction<{ type: string; text: string; }>>,
+    setMessage: React.Dispatch<React.SetStateAction<{ type: string; text: string; }>>
     setFormName: React.Dispatch<React.SetStateAction<string>>
 }
 
-const LoginForm : React.FC<Props> = (props)  => {
+const SignUpForm: React.FC<Props> = (props) => {
     const { setMessage, setFormName } = props
-
+  
     const {
         register,
         handleSubmit,
@@ -21,43 +24,34 @@ const LoginForm : React.FC<Props> = (props)  => {
         formState: { errors }
     } = useForm<FormValues>({mode: "onChange"})
 
-    const signIn = async (data: FormValues): Promise<void> => {
+    const signUp = async (data: FormValues): Promise<void> => {
         try {
-            const response = await fetch(`${process.env.REACT_APP_BACKEND_API_PATH}/user/signin`, {
+            const response = await fetch(`${process.env.REACT_APP_BACKEND_API_PATH}/user/signup`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     name: data.name,
-                    password: data.password
+                    password: data.password,
+                    email: data.email
                 }),
             });
-    
+
             if (!response.ok) {
                 throw new Error();
             }
-    
-            const responseJson = await response.json()
-            const accessToken = responseJson.accessToken
-            // accessTokenをローカルストレージに保存
-            localStorage.setItem('accessToken', accessToken);
-            localStorage.setItem('TactiBoardUserName', data.name);
-            setMessage({ type: "success", text: "login succeed!" });
-    
+            setMessage(MESSAGES.SIGNUP_SUCCESS);
+            setFormName("login")
+
         } catch (error) {
             console.error(error);
-            setMessage({ type: "error", text: "login failed" });
+            setMessage(MESSAGES.SIGNUP_FAILURE);
         }
     }
 
-    const forgotPassword =  (): void => {
-        setMessage({ type: "", text: "" });
-        setFormName("forgot")
-    }
-
     const onSubmit = handleSubmit(async (data: FormValues) => {
-        await signIn(data)
+        await signUp(data)
         reset()
     })
 
@@ -68,6 +62,23 @@ const LoginForm : React.FC<Props> = (props)  => {
             className="p-2"
             >
             <div className="mt-2 flex w-full flex-col">
+                <label className="text-lg font-outfit text-base-content">
+                Email
+                </label>
+                <input
+                {...register("email", { required: "Please enter email" })}
+                className="rounded-md border bg-base-100 px-2 py-0.5 focus:border-2"
+                type="email"
+                name="email"
+                placeholder="value"
+                />
+                {errors.email && (
+                    <div className="px-2 text-base font-outfit py-0.5 text-error">
+                    {errors.email.message}
+                    </div>
+                )}
+            </div>
+            <div className="mt-5 flex w-full flex-col">
                 <label className="text-lg font-outfit text-base-content">
                 Name
                 </label>
@@ -117,14 +128,11 @@ const LoginForm : React.FC<Props> = (props)  => {
                 className="w-full rounded-lg mt-8 bg-neutral hover:bg-stone-700 px-2 py-0.5 font-outfit text-neutral-content"
                 type="submit"
             >
-                Login
+                SignUp
             </button>
             </form>
-            <button className="mt-8 px-2 py-1 text-[10px] font-outfit px-py-0.5 underline text-base" onClick={forgotPassword}>
-                forgot password?
-            </button>
         </div>
     )
 }
 
-export default LoginForm
+export default SignUpForm

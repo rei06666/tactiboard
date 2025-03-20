@@ -1,105 +1,92 @@
 import React from 'react'
-import { set, useForm } from 'react-hook-form'
-
+import { useForm } from 'react-hook-form'
+import { MESSAGES } from '../../consts/consts'
 
 type FormValues = {
-    name: string
-    password: string
-    email: string
+    newpassword: string
+    verification: string
 }
 
 type Props = {
-    setMessage: React.Dispatch<React.SetStateAction<{ type: string; text: string; }>>
-    setFormName: React.Dispatch<React.SetStateAction<string>>
+    setMessage: React.Dispatch<React.SetStateAction<{ type: string; text: string; }>>,
+    setFormName: React.Dispatch<React.SetStateAction<string>>,
+    userName: string
 }
 
-const SignUpForm: React.FC<Props> = (props) => {
-    const { setMessage, setFormName } = props
-  
+const PasswordChangeForm: React.FC<Props> = (props) => {
+    const { setMessage, setFormName, userName} = props
+
     const {
         register,
         handleSubmit,
         reset,
         formState: { errors }
-    } = useForm<FormValues>({mode: "onChange"})
+    } = useForm<FormValues>({
+        mode: 'onChange',
+    });
 
-    const signUp = async (data: FormValues): Promise<void> => {
+    const changePassword = async (data: FormValues) => {
         try {
-            const response = await fetch(`${process.env.REACT_APP_BACKEND_API_PATH}/user/signup`, {
+            const response = await fetch(`${process.env.REACT_APP_BACKEND_API_PATH}/user/password/change`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    name: data.name,
-                    password: data.password,
-                    email: data.email
+                    verifyCode: data.verification,
+                    newPassword: data.newpassword,
+                    name: userName
                 }),
             });
-
+    
             if (!response.ok) {
                 throw new Error();
             }
-            setMessage({ type: "success", text: "signup succeed!" });
+
+            setMessage(MESSAGES.PASSWORD_CHANGE_SUCCESS);
             setFormName("login")
 
         } catch (error) {
             console.error(error);
-            setMessage({ type: "error", text: "signup failed" });
+            setMessage(MESSAGES.PASSWORD_CHANGE_FAILURE);
+            
         }
     }
 
     const onSubmit = handleSubmit(async (data: FormValues) => {
-        await signUp(data)
+        await changePassword(data)
         reset()
     })
 
-    return (
-        <div className="animate-fadeIn container mx-auto w-2/3 rounded-sm shadow-md bg-base-200">
+  return (
+    <div className="animate-fadeIn container mx-auto w-2/3 rounded-sm shadow-md bg-base-200">
             <form
             onSubmit={onSubmit}
             className="p-2"
             >
             <div className="mt-2 flex w-full flex-col">
                 <label className="text-lg font-outfit text-base-content">
-                Email
+                verification code
                 </label>
                 <input
-                {...register("email", { required: "Please enter email" })}
+                {...register("verification", { required: "Please enter name" })}
                 className="rounded-md border bg-base-100 px-2 py-0.5 focus:border-2"
-                type="email"
-                name="email"
+                type="verification"
+                name="verification"
                 placeholder="value"
                 />
-                {errors.email && (
+                {errors.verification && (
                     <div className="px-2 text-base font-outfit py-0.5 text-error">
-                    {errors.email.message}
-                    </div>
-                )}
-            </div>
-            <div className="mt-5 flex w-full flex-col">
-                <label className="text-lg font-outfit text-base-content">
-                Name
-                </label>
-                <input
-                {...register("name", { required: "Please enter name" })}
-                className="rounded-md border bg-base-100 px-2 py-0.5 focus:border-2"
-                type="name"
-                name="name"
-                placeholder="value"
-                />
-                {errors.name && (
-                    <div className="px-2 text-base font-outfit py-0.5 text-error">
-                    {errors.name.message}
+                    {errors.verification.message}
                     </div>
                 )}
             </div>
             <div className="flex w-full flex-col mt-5">
                 <label className="text-lg font-outfit text-base-content">
-                Password
+                New Password
                 </label>
                 <input
-                {...register("password", { 
+                {...register("newpassword", { 
                     required: "Please enter password",
                     minLength: {
                         value: 8,
@@ -114,12 +101,12 @@ const SignUpForm: React.FC<Props> = (props) => {
                 })}
                 className="rounded-md border bg-base-100 px-2 py-0.5 focus:border-2"
                 type="password"
-                name="password"
+                name="newpassword"
                 placeholder="value"
                 />
-                {errors.password && (
+                {errors.newpassword && (
                     <div className="px-2 text-base font-outfit py-0.5 text-error">
-                    {errors.password.message}
+                    {errors.newpassword.message}
                     </div>
                 )}
             </div>
@@ -127,11 +114,11 @@ const SignUpForm: React.FC<Props> = (props) => {
                 className="w-full rounded-lg mt-8 bg-neutral hover:bg-stone-700 px-2 py-0.5 font-outfit text-neutral-content"
                 type="submit"
             >
-                SignUp
+                Change Password
             </button>
             </form>
         </div>
-    )
+  )
 }
 
-export default SignUpForm
+export default PasswordChangeForm

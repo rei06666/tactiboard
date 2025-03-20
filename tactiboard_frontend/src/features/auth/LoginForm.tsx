@@ -1,91 +1,98 @@
 import React from 'react'
 import { useForm } from 'react-hook-form'
+import { useNavigate } from 'react-router-dom'
+import { MESSAGES } from '../../consts/consts'
 
 type FormValues = {
-    newpassword: string
-    verification: string
+    name: string
+    password: string
 }
 
 type Props = {
     setMessage: React.Dispatch<React.SetStateAction<{ type: string; text: string; }>>,
-    setFormName: React.Dispatch<React.SetStateAction<string>>,
-    userName: string
+    setFormName: React.Dispatch<React.SetStateAction<string>>
 }
 
-const PasswordChangeForm: React.FC<Props> = (props) => {
-    const { setMessage, setFormName, userName} = props
+const LoginForm : React.FC<Props> = (props)  => {
+    const { setMessage, setFormName } = props
+    const navigate = useNavigate()
 
     const {
         register,
         handleSubmit,
         reset,
         formState: { errors }
-    } = useForm<FormValues>({
-        mode: 'onChange',
-    });
+    } = useForm<FormValues>({mode: "onChange"})
 
-    const changePassword = async (data: FormValues) => {
+    const signIn = async (data: FormValues): Promise<void> => {
         try {
-            const response = await fetch(`${process.env.REACT_APP_BACKEND_API_PATH}/user/password/change`, {
+            const response = await fetch(`${process.env.REACT_APP_BACKEND_API_PATH}/user/signin`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    verifyCode: data.verification,
-                    newPassword: data.newpassword,
-                    name: userName
+                    name: data.name,
+                    password: data.password
                 }),
             });
     
             if (!response.ok) {
                 throw new Error();
             }
-
-            setMessage({ type: "success", text: "Password changed" });
-            setFormName("login")
-
+    
+            const responseJson = await response.json()
+            const accessToken = responseJson.accessToken
+            // accessTokenをローカルストレージに保存
+            localStorage.setItem('accessToken', accessToken);
+            localStorage.setItem('TactiBoardUserName', data.name);
+            navigate('/dashboard')
+    
         } catch (error) {
             console.error(error);
-            setMessage({ type: "error", text: "Password change failed" });
-            
+            setMessage(MESSAGES.LOGIN_FAILURE);
         }
     }
 
+    const forgotPassword =  (): void => {
+        setMessage({ type: "", text: "" });
+        setFormName("forgot")
+    }
+
     const onSubmit = handleSubmit(async (data: FormValues) => {
-        await changePassword(data)
+        await signIn(data)
         reset()
     })
 
-  return (
-    <div className="animate-fadeIn container mx-auto w-2/3 rounded-sm shadow-md bg-base-200">
+    return (
+        <div className="animate-fadeIn container mx-auto w-2/3 rounded-sm shadow-md bg-base-200">
             <form
             onSubmit={onSubmit}
             className="p-2"
             >
             <div className="mt-2 flex w-full flex-col">
                 <label className="text-lg font-outfit text-base-content">
-                verification code
+                Name
                 </label>
                 <input
-                {...register("verification", { required: "Please enter name" })}
+                {...register("name", { required: "Please enter name" })}
                 className="rounded-md border bg-base-100 px-2 py-0.5 focus:border-2"
-                type="verification"
-                name="verification"
+                type="name"
+                name="name"
                 placeholder="value"
                 />
-                {errors.verification && (
+                {errors.name && (
                     <div className="px-2 text-base font-outfit py-0.5 text-error">
-                    {errors.verification.message}
+                    {errors.name.message}
                     </div>
                 )}
             </div>
             <div className="flex w-full flex-col mt-5">
                 <label className="text-lg font-outfit text-base-content">
-                New Password
+                Password
                 </label>
                 <input
-                {...register("newpassword", { 
+                {...register("password", { 
                     required: "Please enter password",
                     minLength: {
                         value: 8,
@@ -100,12 +107,12 @@ const PasswordChangeForm: React.FC<Props> = (props) => {
                 })}
                 className="rounded-md border bg-base-100 px-2 py-0.5 focus:border-2"
                 type="password"
-                name="newpassword"
+                name="password"
                 placeholder="value"
                 />
-                {errors.newpassword && (
+                {errors.password && (
                     <div className="px-2 text-base font-outfit py-0.5 text-error">
-                    {errors.newpassword.message}
+                    {errors.password.message}
                     </div>
                 )}
             </div>
@@ -113,11 +120,14 @@ const PasswordChangeForm: React.FC<Props> = (props) => {
                 className="w-full rounded-lg mt-8 bg-neutral hover:bg-stone-700 px-2 py-0.5 font-outfit text-neutral-content"
                 type="submit"
             >
-                Change Password
+                Login
             </button>
             </form>
+            <button className="mt-8 px-2 py-1 text-[10px] font-outfit px-py-0.5 underline text-base" onClick={forgotPassword}>
+                forgot password?
+            </button>
         </div>
-  )
+    )
 }
 
-export default PasswordChangeForm
+export default LoginForm
