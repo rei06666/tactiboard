@@ -8,5 +8,5 @@ export const MESSAGES = {
   PASSWORD_CHANGE_SUCCESS: { type: "success", text: "Password changed" },
   PASSWORD_CHANGE_FAILURE: { type: "error", text: "Password change failed" },
   VERIFICATION_SENT: { type: "success", text: "sent verification to email" },
-  VERIFICATION_FAILURE: { type: "error", text: "failed to send verification" }
+  VERIFICATION_FAILURE: { type: "error", text: "failed to send verification" },
 };
