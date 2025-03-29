@@ -9,8 +9,6 @@ import TeamTable from "../features/team/TeamTable";
 
 import { Action } from "../features/team/TeamTable";
 
-const userName = localStorage.getItem("TactiBoardUserName") as string;
-
 export type State = {
   Loading: boolean;
   Error: string | null;
@@ -24,7 +22,6 @@ const initialState: State = {
 };
 
 const reducer = (state: State, action: Action): State => {
-  console.log(action);
   switch (action.type) {
     case "error":
       return {
@@ -45,7 +42,7 @@ const reducer = (state: State, action: Action): State => {
 
 const Team: React.FC = () => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
-
+  　const userName = localStorage.getItem("TactiBoardUserName") as string;
   return (
     <div className="min-h-screen bg-base-100">
       <NavBar userName={userName} />

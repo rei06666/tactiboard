@@ -1,6 +1,7 @@
 import React from "react";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
+import Message from "../../components/Message";
 
 type Props = {};
 
@@ -10,8 +11,17 @@ type FormValues = {
   emblem: Blob;
 };
 
+type Message = {
+  type: "error" | "success";
+  message: string;
+}
+
 const CreateTeamForm = (props: Props) => {
   const [preview, setPreview] = useState<string | null>(null);
+  const [message, setMessage] = useState<Message | null>(null);
+  const [emblem, setEmblem] = useState<Blob | null>(null);
+  const userName = localStorage.getItem("TactiBoardUserName") as string;
+
   const {
     register,
     handleSubmit,
@@ -27,6 +37,7 @@ const CreateTeamForm = (props: Props) => {
         setPreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+      setEmblem(file);
     } else {
       setPreview(null);
     }
@@ -34,17 +45,19 @@ const CreateTeamForm = (props: Props) => {
 
   const createTeam = async (data: FormValues): Promise<void> => {
     try {
+      // FormDataを作成
+      const formData = new FormData();
+      formData.append("name", data.name);
+      formData.append("description", data.description);
+      formData.append("admin", userName);
+      if (emblem) {
+        formData.append("emblem", emblem); // 画像データを追加
+      }
       const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_API_PATH}/user/signin`,
+        `${process.env.REACT_APP_BACKEND_API_PATH}/team/`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: data.name,
-            password: data.description,
-          }),
+          body: formData,
         }
       );
 
@@ -53,22 +66,37 @@ const CreateTeamForm = (props: Props) => {
       }
 
       const responseJson = await response.json();
-      const accessToken = responseJson.accessToken;
-      // accessTokenをローカルストレージに保存
-      localStorage.setItem("accessToken", accessToken);
-      localStorage.setItem("TactiBoardUserName", data.name);
+      setMessage({
+        type: "success",
+        message: "Team created successfully",
+      });
+
     } catch (error) {
       console.error(error);
+      setMessage({
+        type: "error",
+        message: "Failed to create team",
+      });
     }
   };
 
   const onSubmit = handleSubmit(async (data: FormValues) => {
+    setMessage(null);
     await createTeam(data);
     reset();
     setPreview(null);
   });
+
   return (
     <div>
+      <div className="max-w-xs ml-2">
+        {message && (
+          <Message
+            type={message.type}
+            text={message.message}
+          />
+        )}
+      </div>
       <form onSubmit={onSubmit} className="p-2">
         <fieldset className="fieldset w-xs bg-base-200 border border-base-300 p-4 rounded-box">
           <legend className="fieldset-legend"></legend>

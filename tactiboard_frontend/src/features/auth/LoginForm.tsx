@@ -50,7 +50,11 @@ const LoginForm: React.FC<Props> = (props) => {
       const accessToken = responseJson.accessToken;
       // accessTokenをローカルストレージに保存
       localStorage.setItem("accessToken", accessToken);
+      // ユーザー名をローカルストレージから削除
+      localStorage.removeItem("TactiBoardUserName");
+      // ユーザー名をローカルストレージに保存
       localStorage.setItem("TactiBoardUserName", data.name);
+      console.log(data.name);
       navigate("/dashboard");
     } catch (error) {
       console.error(error);

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { use } from "react";
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import NavBar from "../features/nav/NavBar";
@@ -12,7 +12,7 @@ import TacticsTable from "../features/tactics/TacticsTable";
 import { Action as TeamAction } from "../features/team/TeamTable";
 import { Action as TacticsAction } from "../features/tactics/TacticsTable";
 
-const userName = localStorage.getItem("TactiBoardUserName") as string;
+
 
 export type State = {
   teamLoading: boolean;
@@ -29,7 +29,6 @@ const initialState: State = {
 };
 
 const reducer = (state: State, action: TeamAction | TacticsAction): State => {
-  console.log(action);
   switch (action.type) {
     case "error":
       if (action.datatype === "team") {
@@ -71,6 +70,7 @@ const reducer = (state: State, action: TeamAction | TacticsAction): State => {
 
 const Dashboard: React.FC = () => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
+  const userName = localStorage.getItem("TactiBoardUserName") as string;
 
   return (
     <div className="min-h-screen bg-base-100">

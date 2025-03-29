@@ -14,7 +14,7 @@ const MovePageDropdown = (props: Props) => {
             </div>
             <ul
                 tabIndex={0}
-                className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
+                className="menu menu-sm dropdown-content bg-base-100 rounded-box z-10 mt-3 w-52 p-2 shadow">
                 <li onClick={() => {navigate("/dashboard")}}><a>Dashboard</a></li>
                 <li onClick={() => {navigate("/team")}}><a>Team</a></li>
                 <li onClick={() => {navigate("/tactics")}}><a>Tactics</a></li>

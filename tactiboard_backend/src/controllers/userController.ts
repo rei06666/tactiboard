@@ -2,6 +2,9 @@ import { signUpCognito, signInCognito, passwordChangeCognito, sendVerificationCo
 import { User, SignUpRequest, SignInRequest, SignInResponse, PasswordChangeRequest,} from '../types/userTypes';
 import { BaseErrorResponse, BaseResponse } from '../types/utilityTypes';
 import { Request, Response } from 'express';
+const sqlite3 = require("sqlite3").verbose();
+require("dotenv").config();
+const db = new sqlite3.Database(process.env.DB_PATH);
 
 // ユーザー登録
 const signUp = async (req: SignUpRequest, res: Response) => {
@@ -12,7 +15,9 @@ const signUp = async (req: SignUpRequest, res: Response) => {
         password: req.body.password,
     };
 
-    const result = await signUpCognito(user);
+    await signUpCognito(user);
+    await addUserData(user.name);
+
     const response: BaseResponse = { message: 'ok' };
     res.status(200).json(response);
   } catch (error) {
@@ -20,6 +25,20 @@ const signUp = async (req: SignUpRequest, res: Response) => {
     res.status(500).json(response);
   }
 };
+
+const addUserData = async (name: string) => {
+  return new Promise((resolve, reject) => {
+    const sql = "INSERT INTO User (name) VALUES (?)";
+    db.run(sql, [name], (err: Error | null) => {
+      if (err) {
+        console.error("Error inserting data:", err);
+        reject(err);
+      } else {
+        resolve(true);
+      }
+    });
+  });
+}
 
 // ログイン
 const signIn = async (req: SignInRequest, res: Response) => {

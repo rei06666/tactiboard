@@ -11,6 +11,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendVerification = exports.changePassword = exports.signIn = exports.signUp = void 0;
 const cognitoService_1 = require("../services/cognitoService");
+const sqlite3 = require("sqlite3").verbose();
+require("dotenv").config();
+const db = new sqlite3.Database(process.env.DB_PATH);
 // ユーザー登録
 const signUp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -19,7 +22,8 @@ const signUp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             name: req.body.name,
             password: req.body.password,
         };
-        const result = yield (0, cognitoService_1.signUpCognito)(user);
+        yield (0, cognitoService_1.signUpCognito)(user);
+        yield addUserData(user.name);
         const response = { message: 'ok' };
         res.status(200).json(response);
     }
@@ -29,6 +33,20 @@ const signUp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.signUp = signUp;
+const addUserData = (name) => __awaiter(void 0, void 0, void 0, function* () {
+    return new Promise((resolve, reject) => {
+        const sql = "INSERT INTO User (name) VALUES (?)";
+        db.run(sql, [name], (err) => {
+            if (err) {
+                console.error("Error inserting data:", err);
+                reject(err);
+            }
+            else {
+                resolve(true);
+            }
+        });
+    });
+});
 // ログイン
 const signIn = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {

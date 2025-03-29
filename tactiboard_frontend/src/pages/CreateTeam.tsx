@@ -4,10 +4,11 @@ import { useNavigate } from "react-router-dom";
 import { set, useForm } from "react-hook-form";
 import NavBar from "../features/nav/NavBar";
 import Message from "../components/Message";
+import CreateTeamForm from "../features/team/CreateTeamForm";
 
-const userName = localStorage.getItem("TactiBoardUserName") as string;
 
 const CreateTeam: React.FC = () => {
+  const userName = localStorage.getItem("TactiBoardUserName") as string;
   return (
     <div className="min-h-screen bg-base-100">
       <NavBar userName={userName} />
@@ -18,6 +19,7 @@ const CreateTeam: React.FC = () => {
               Create Team
             </div>
           </div>
+          <CreateTeamForm />
         </div>
       </div>
     </div>

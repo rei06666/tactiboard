@@ -5,11 +5,13 @@ type Props = {
   dispatch: React.Dispatch<Action>;
 };
 
-type Team = {
+interface Team {
   name: string;
-  admin: string;
   description: string;
-};
+  admin: string;
+  create_date: string;
+  emblem: { type: string; data: number[] };
+}
 
 export type Action =
   | { datatype: string; type: "error"; message: string }
@@ -17,14 +19,12 @@ export type Action =
 
 const TeamTable = (props: Props) => {
   const { userName, dispatch } = props;
-  const [team, setTeam] = React.useState<Team[]>([]);
+  const [teams, setTeam] = React.useState<Team[]>([]);
 
   useLayoutEffect(() => {
     getTeam(userName);
   }, []);
 
-  const sleep = (ms: number) =>
-    new Promise((resolve) => setTimeout(resolve, ms));
 
   const getTeam = async (userName: string): Promise<void> => {
     try {
@@ -32,22 +32,19 @@ const TeamTable = (props: Props) => {
         username: userName,
       });
 
-      // dispatch({ datatype: 'team', type: 'success' })
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_API_PATH}/team?` + params, {
+          method: 'GET',
+          headers: {
+              'Content-Type': 'application/json',
+          }
+      });
 
-      // Uncomment and use actual API response
-      // const response = await fetch(`${process.env.REACT_APP_BACKEND_API_PATH}/team?` + params, {
-      //     method: 'GET',
-      //     headers: {
-      //         'Content-Type': 'application/json',
-      //     }
-      // });
+      if (!response.ok) {
+          throw new Error();
+      }
 
-      // if (!response.ok) {
-      //     throw new Error();
-      // }
-
-      // const responseJson = await response.json()
-      // setTeam(responseJson)
+      const data = await response.json()
+      setTeam(data.data);
 
       dispatch({ datatype: "team", type: "success" });
     } catch (error) {
@@ -60,46 +57,49 @@ const TeamTable = (props: Props) => {
     }
   };
 
+  const arrayBufferToBase64 = (buffer: { type: string; data: number[] }): string => {
+    let binary = "";
+    const bytes = new Uint8Array(buffer.data);
+    for (let i = 0; i < bytes.byteLength; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return window.btoa(binary);
+  };
+
   return (
-    <div className="overflow-x-auto mt-5">
-      <table className="table w-[90%] mx-auto ml-5">
+    <div className="overflow-x-auto">
+      <table className="table table-zebra w-full">
         <thead>
           <tr>
-            <th></th>
+            <th>Emblem</th>
             <th>Name</th>
-            <th>Administrator</th>
             <th>Description</th>
+            <th>Admin</th>
+            <th>Create Date</th>
           </tr>
         </thead>
         <tbody>
-          {team.length > 0 ? (
-            team.map((teamItem, index) => (
-              <tr key={index}>
-                <td>
-                  <div className="avatar">
-                    <div className="mask mask-squircle rounded-full w-12">
-                      <img
-                        src="https://msp.c.yimg.jp/images/v2/FUTi93tXq405grZVGgDqG1HCspbL7sWokfZotm1uDBd81-Wb6xyJ6-nR6EPFga2PuiwG7KW-XKawZC5bAvHfd2umYnXFqf7ekqbENVDjLvDbfVvz7l84cW52m6yNhvLLF45fd8w1bmGD16JeST4km6PCyhegI00RTxCVaIG3YQ7-JsblGWJpaoPN5QlLwcxrd2U4cUFUkl97nzUO160yuj_QUXRm-jGOLxdB2E2Xpqq4pRs1JbdevxbCv73Qleim5MyaQZVQkd76tu5jol9OqStwnIMutuHh95W7CchEsdkuWYaJL7rE4LL8M6ivsxQy/Manchester_United_F.C.-Logo.wine.png"
-                        alt="Team Logo"
-                      />
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  <div className="font-bold">{teamItem.name}</div>
-                </td>
-                <td>
-                  <div className="font-bold">{teamItem.admin}</div>
-                </td>
-                <td>
-                  <div className="font-bold">{teamItem.description}</div>
-                </td>
-              </tr>
-            ))
-          ) : (
+          {teams.map((team) => (
+            <tr key={team.name}>
+              <td>
+                {team.emblem && (
+                  <img
+                    src={`data:image/png;base64,${arrayBufferToBase64(team.emblem)}`}
+                    alt={`${team.name} Emblem`}
+                    className="w-12 h-12 rounded-full"
+                  />
+                )}
+              </td>
+              <td>{team.name}</td>
+              <td>{team.description}</td>
+              <td>{team.admin}</td>
+              <td>{team.create_date}</td>
+            </tr>
+          ))}
+          {teams.length === 0 && (
             <tr>
-              <td colSpan={4} className="text-center font-bold">
-                No Team
+              <td colSpan={5} className="text-center font-black">
+                No team
               </td>
             </tr>
           )}
