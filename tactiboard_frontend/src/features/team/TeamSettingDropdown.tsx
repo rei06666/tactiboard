@@ -35,20 +35,6 @@ const TeamSettingDropdown = (props: Props) => {
           tabIndex={0}
           className="menu menu-sm dropdown-content bg-base-100 rounded-box mt-3 w-52 p-2 shadow"
         >
-          {/* 編集 */}
-          <li
-            className={
-              isAdmin
-                ? "font-bold"
-                : "text-gray-400 font-bold pointer-events-none"
-            }
-            onClick={() => {
-              if (isAdmin) navigate(`/team/${teamName}/edit`);
-            }}
-          >
-            <a>Edit</a>
-          </li>
-
           {/* メンバー一覧を見る */}
           <li
             onClick={() => {

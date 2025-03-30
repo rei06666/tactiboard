@@ -6,4 +6,5 @@ export interface BaseErrorResponse {
 //　レスポンスのデフォルト型
 export interface BaseResponse {
     message: string;
+    data?: unknown;
 }

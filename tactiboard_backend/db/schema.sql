@@ -46,11 +46,12 @@ CREATE TABLE SavedTactics (
 -- Activityテーブルの作成
 -- 招待アクティビティの場合はユーザー名も必要
 CREATE TABLE Activity (
-    name TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
     activity TEXT NOT NULL,
     create_date TEXT NOT NULL,
     team TEXT NOT NULL,
     user TEXT,
+    PRIMARY KEY (name, create_date)
     FOREIGN KEY (user) REFERENCES User(name),
     FOREIGN KEY (team) REFERENCES Team(name)
 );

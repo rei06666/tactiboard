@@ -23,7 +23,7 @@ const NavBar: React.FC<Props> = (props) => {
           <a className="text-2xl font-monoton">Tactiboard</a>
         </div>
         <div className="navbar-end">
-            <ActivityDropdown />
+            <ActivityDropdown userName={userName ?? ''}/>
             <UserDropdown />
         </div>
       </div>
