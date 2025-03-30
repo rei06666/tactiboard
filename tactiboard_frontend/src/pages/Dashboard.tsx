@@ -94,7 +94,7 @@ const Dashboard: React.FC = () => {
             </div>
           )}
           <div className={state.teamLoading ? "hidden" : ""}>
-            <TeamTable userName={userName} dispatch={dispatch} />
+            <TeamTable userName={userName} dispatch={dispatch} isTeamPage={false} />
           </div>
         </div>
         <div className="mt-20 ml-5">

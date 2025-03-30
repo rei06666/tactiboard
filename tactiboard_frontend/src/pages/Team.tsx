@@ -42,7 +42,7 @@ const reducer = (state: State, action: Action): State => {
 
 const Team: React.FC = () => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
-  　const userName = localStorage.getItem("TactiBoardUserName") as string;
+  const userName = localStorage.getItem("TactiBoardUserName") as string;
   return (
     <div className="min-h-screen bg-base-100">
       <NavBar userName={userName} />
@@ -65,7 +65,7 @@ const Team: React.FC = () => {
             </div>
           )}
           <div className={state.Loading ? "hidden" : ""}>
-            <TeamTable userName={userName} dispatch={dispatch} />
+            <TeamTable userName={userName} dispatch={dispatch} isTeamPage={true}/>
           </div>
         </div>
       </div>

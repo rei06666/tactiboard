@@ -15,3 +15,5 @@ const upload = (0, multer_1.default)({ storage });
 // ルート設定
 router.post(`/`, upload.single("emblem"), teamController_1.createTeam);
 router.get(`/`, teamController_1.getTeam);
+router.delete(`/`, teamController_1.deleteTeam);
+router.delete(`/leave`, teamController_1.leaveTeam);

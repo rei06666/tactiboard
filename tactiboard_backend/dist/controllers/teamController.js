@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getTeam = exports.createTeam = void 0;
+exports.leaveTeam = exports.deleteTeam = exports.getTeam = exports.createTeam = void 0;
 const util_1 = require("../util/util");
 const client_s3_1 = require("@aws-sdk/client-s3");
 const sqlite3 = require("sqlite3").verbose();
@@ -164,6 +164,126 @@ const checkTeamName = (name) => __awaiter(void 0, void 0, void 0, function* () {
             }
             else {
                 resolve(row.count === 0);
+            }
+        });
+    });
+});
+// チームを削除する
+const deleteTeam = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const teamName = req.body.name;
+        // チームを削除する処理
+        yield removeTeamData(teamName);
+        const response = { message: "ok" };
+        res.status(200).json(response);
+    }
+    catch (error) {
+        const response = { message: error.message };
+        console.error("error", error);
+        res.status(500).json(response);
+    }
+});
+exports.deleteTeam = deleteTeam;
+const removeTeamData = (teamName) => __awaiter(void 0, void 0, void 0, function* () {
+    return new Promise((resolve, reject) => {
+        const sqlTeam = "DELETE FROM Team WHERE name = ?";
+        const sqlUserTeams = "DELETE FROM UserTeams WHERE team_name = ?";
+        const sqlTactics = "DELETE FROM Tactics WHERE team = ?";
+        db.serialize(() => __awaiter(void 0, void 0, void 0, function* () {
+            try {
+                // チーム情報をデータベースから削除
+                const stmtTeam = db.prepare(sqlTeam);
+                stmtTeam.run([teamName], (err) => {
+                    if (err) {
+                        reject(err);
+                    }
+                });
+                stmtTeam.finalize((err) => {
+                    if (err) {
+                        reject(err);
+                    }
+                });
+                // UserTeamsテーブルからadminを削除
+                const stmtUserTeams = db.prepare(sqlUserTeams);
+                stmtUserTeams.run([teamName], (err) => {
+                    if (err) {
+                        reject(err);
+                    }
+                });
+                stmtUserTeams.finalize((err) => {
+                    if (err) {
+                        reject(err);
+                    }
+                    resolve(null);
+                });
+                // Tacticsテーブルからチームを削除
+                const stmtTactics = db.prepare(sqlTactics);
+                stmtTactics.run([teamName], (err) => {
+                    if (err) {
+                        reject(err);
+                    }
+                });
+                stmtTactics.finalize((err) => {
+                    if (err) {
+                        reject(err);
+                    }
+                });
+                // S3から画像を削除
+                const emblemKey = `teams/${teamName}/emblem.png`; // S3に保存するキー
+                const deleteParams = {
+                    Bucket: process.env.S3_BUCKET_NAME, // S3バケット名
+                    Key: emblemKey,
+                };
+                const command = new client_s3_1.DeleteObjectCommand(deleteParams);
+                const deleteResult = yield s3.send(command);
+                console.log("S3 Delete Success:", deleteResult);
+            }
+            catch (error) {
+                console.error("S3 Delete Error:", error);
+                reject(error);
+            }
+        }));
+    });
+});
+// チームを脱退する
+const leaveTeam = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const teamName = req.body.name;
+        const userName = req.body.username;
+        // チームを脱退する処理
+        yield removeUserFromTeam(userName, teamName);
+        const response = { message: "ok" };
+        res.status(200).json(response);
+    }
+    catch (error) {
+        const response = { message: error.message };
+        console.error("error", error);
+        res.status(500).json(response);
+    }
+});
+exports.leaveTeam = leaveTeam;
+const removeUserFromTeam = (userName, teamName) => __awaiter(void 0, void 0, void 0, function* () {
+    return new Promise((resolve, reject) => {
+        const sql = "DELETE FROM UserTeams WHERE user_name = ? AND team_name = ?";
+        db.serialize(() => {
+            try {
+                // UserTeamsテーブルからユーザーを削除
+                const stmt = db.prepare(sql);
+                stmt.run([userName, teamName], (err) => {
+                    if (err) {
+                        reject(err);
+                    }
+                });
+                stmt.finalize((err) => {
+                    if (err) {
+                        reject(err);
+                    }
+                    resolve(null);
+                });
+            }
+            catch (error) {
+                console.error("Error removing user from team:", error);
+                reject(error);
             }
         });
     });
