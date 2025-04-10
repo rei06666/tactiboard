@@ -1,6 +1,6 @@
 import express from "express";
 import multer from "multer";
-import { createTeam, getTeam, deleteTeam, leaveTeam } from "../controllers/teamController";
+import { createTeam, getTeam, deleteTeam, leaveTeam, JoinTeam, RejectTeam } from "../controllers/teamController";
 
 const router = express.Router();
 
@@ -13,5 +13,7 @@ router.post(`/`, upload.single("emblem"), createTeam);
 router.get(`/`, getTeam);
 router.delete(`/`, deleteTeam);
 router.delete(`/leave`, leaveTeam)
+router.post(`/accept_invite`, JoinTeam)
+router.post(`/reject_invite`, RejectTeam)
 
 export { router as teamRoutes };

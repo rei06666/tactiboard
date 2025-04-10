@@ -17,3 +17,5 @@ router.post(`/`, upload.single("emblem"), teamController_1.createTeam);
 router.get(`/`, teamController_1.getTeam);
 router.delete(`/`, teamController_1.deleteTeam);
 router.delete(`/leave`, teamController_1.leaveTeam);
+router.post(`/accept_invite`, teamController_1.JoinTeam);
+router.post(`/reject_invite`, teamController_1.RejectTeam);

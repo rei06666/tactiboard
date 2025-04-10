@@ -272,29 +272,163 @@ const leaveTeam = async (req: Request, res: Response) => {
   }
 };
 const removeUserFromTeam = async (userName: string, teamName: string): Promise<unknown> => {
+  // Acitivityテーブルに脱退Activityを追加し、UserTeamsテーブルからユーザーを削除
   return new Promise((resolve, reject) => {
-    const sql = "DELETE FROM UserTeams WHERE user_name = ? AND team_name = ?";
+    const sqlUserTeams = "DELETE FROM UserTeams WHERE user_name = ? AND team_name = ?";
+    const sqlActivity = "INSERT INTO Activity (name, activity, create_date, team, user) VALUES (?, ?, ?, ?, ?)";
     db.serialize(() => {
       try {
         // UserTeamsテーブルからユーザーを削除
-        const stmt = db.prepare(sql);
-        stmt.run([userName, teamName], (err: Error | null) => {
+        const stmtUserTeams = db.prepare(sqlUserTeams);
+        stmtUserTeams.run([userName, teamName], (err: Error | null) => {
           if (err) {
             reject(err);
           }
         });
-        stmt.finalize((err: Error | null) => {
+        stmtUserTeams.finalize((err: Error | null) => {
+          if (err) {
+            reject(err);
+          }
+        });
+        // Activityテーブルに脱退Activityを追加
+        const date = getJaDateString();
+        const activityName = `${userName} has left the team ${teamName}`;
+        const activity = "leave";
+        const stmtActivity = db.prepare(sqlActivity);
+        stmtActivity.run([activityName, activity, date, teamName, userName], (err: Error | null) => {
+          if (err) {
+            reject(err);
+          }
+        });
+        stmtActivity.finalize((err: Error | null) => {
           if (err) {
             reject(err);
           }
           resolve(null);
         });
       } catch (error) {
-        console.error("Error removing user from team:", error);
+        console.error("S3 Delete Error:", error);
+        reject(error);
+      }
+    });
+  }
+  );
+};
+
+// チームに参加する
+const JoinTeam = async (req: Request, res: Response) => {
+  try {
+    const teamName = req.body.teamName;
+    const userName = req.body.userName;
+    const activityName = req.body.activityName;
+
+    // チームに参加する処理
+    await addUserToTeam(userName, teamName, activityName);
+    const response: BaseResponse = { message: "ok" };
+    res.status(200).json(response);
+  } catch (error) {
+    const response: BaseErrorResponse = { message: (error as Error).message };
+    console.error("error", error);
+    res.status(500).json(response);
+  }
+};
+
+const addUserToTeam = async (userName: string, teamName: string, activityName: string): Promise<unknown> => {
+  // Acitivityテーブルに参加Activityを追加し招待Activityを削除、UserTeamsテーブルにユーザーを追加
+  return new Promise((resolve, reject) => {
+    const sqlUserTeams = "INSERT INTO UserTeams (user_name, team_name, role) VALUES (?, ?, ?)";
+    const sqlActivity = "INSERT INTO Activity (name, activity, create_date, team, user) VALUES (?, ?, ?, ?, ?)";
+    db.serialize(() => {
+      try {
+        // UserTeamsテーブルにユーザーを追加
+        const stmtUserTeams = db.prepare(sqlUserTeams);
+        stmtUserTeams.run([userName, teamName, "member"], (err: Error | null) => {
+          if (err) {
+            reject(err);
+          }
+        });
+        stmtUserTeams.finalize((err: Error | null) => {
+          if (err) {
+            reject(err);
+          }
+        });
+        // Activityテーブルに参加Activityを追加
+        const date = getJaDateString();
+        const joinactivityName = `${userName} has joined the team ${teamName}`;
+        const activity = "join";
+        const stmtActivity = db.prepare(sqlActivity);
+        stmtActivity.run([joinactivityName, activity, date, teamName, userName], (err: Error | null) => {
+          if (err) {
+            reject(err); 
+          }
+        });
+        stmtActivity.finalize((err: Error | null) => {
+          if (err) {
+            reject(err);
+          }
+          resolve(null);
+        });
+        // 招待Activityを削除
+        const sqlDeleteActivity = "DELETE FROM Activity WHERE name = ?";
+        const stmtDeleteActivity = db.prepare(sqlDeleteActivity);
+        stmtDeleteActivity.run([activityName], (err: Error | null) => {
+          if (err) {
+            reject(err);
+          }
+        });
+        stmtDeleteActivity.finalize((err: Error | null) => {
+          if (err) {
+            reject(err);
+          }
+          resolve(null);
+        });
+      } catch (error) {
+        console.error("S3 Delete Error:", error);
         reject(error);
       }
     });
   });
 };
 
-export { createTeam, getTeam, deleteTeam, leaveTeam };
+// 招待を拒否する
+const RejectTeam = async (req: Request, res: Response) => {
+  try {
+    const activityName = req.body.activityName;
+    // 招待を拒否する処理
+    await removeInviteActivity(activityName);
+    const response: BaseResponse = { message: "ok" };
+    res.status(200).json(response);
+  } catch (error) {
+    const response: BaseErrorResponse = { message: (error as Error).message };
+    console.error("error", error);
+    res.status(500).json(response);
+  }
+};
+const removeInviteActivity = async (activityName: string): Promise<unknown> => {
+  // Acitivityテーブルから招待Activityを削除
+  return new Promise((resolve, reject) => {
+    const sqlActivity = "DELETE FROM Activity WHERE name = ?";
+    db.serialize(() => {
+      try {
+        // Activityテーブルから招待Activityを削除
+        const stmtActivity = db.prepare(sqlActivity);
+        stmtActivity.run([activityName], (err: Error | null) => {
+          if (err) {
+            reject(err);
+          }
+        });
+        stmtActivity.finalize((err: Error | null) => {
+          if (err) {
+            reject(err);
+          }
+          resolve(null);
+        });
+      } catch (error) {
+        console.error("S3 Delete Error:", error);
+        reject(error);
+      }
+    });
+  });
+};
+
+export { createTeam, getTeam, deleteTeam, leaveTeam, JoinTeam, RejectTeam};
