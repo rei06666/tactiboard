@@ -115,7 +115,7 @@ const Dashboard: React.FC = () => {
             </div>
           )}
           <div className={state.tacticsLoading ? "hidden" : ""}>
-            <TacticsTable userName={userName} dispatch={dispatch} />
+            <TacticsTable userName={userName} dispatch={dispatch} isTacticsPage={false} />
           </div>
         </div>
       </div>

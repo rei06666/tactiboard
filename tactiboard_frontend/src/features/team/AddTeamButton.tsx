@@ -1,6 +1,5 @@
-import React from "react";
 import addIcon from "../../img/add.png";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 type Props = {};
 

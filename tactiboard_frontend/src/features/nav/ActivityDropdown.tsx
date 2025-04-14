@@ -16,6 +16,7 @@ type Activity = {
 const ActivityDropdown = (props: Props) => {
   const { userName } = props;
   const [activities, setActivities] = useState<Activity[]>([]);
+  const [isMyActivity, setIsMyActivity] = useState(false);
   const [trigger, setTrigger] = useState(false);
 
   useLayoutEffect(() => {

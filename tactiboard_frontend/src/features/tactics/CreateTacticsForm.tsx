@@ -1,6 +1,7 @@
 import React from "react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useLayoutEffect } from "react";
 import Message from "../../components/Message";
 
 type Props = {};
@@ -8,7 +9,7 @@ type Props = {};
 type FormValues = {
   name: string;
   description: string;
-  emblem: Blob;
+  team: string;
 };
 
 type Message = {
@@ -16,11 +17,54 @@ type Message = {
   message: string;
 };
 
-const CreateTeamForm = (props: Props) => {
-  const [preview, setPreview] = useState<string | null>(null);
+interface Team {
+  name: string;
+  description: string;
+  admin: string;
+  create_date: string;
+  emblem: { type: string; data: number[] };
+}
+
+const CreateTacticsForm = (props: Props) => {
   const [message, setMessage] = useState<Message | null>(null);
-  const [emblem, setEmblem] = useState<Blob | null>(null);
+  const [team, setTeam] = useState<Team[]>([]);
+  const [selectedTeam, setSelectedTeam] = useState<string>(""); // 選択されたチームを管理
   const userName = localStorage.getItem("TactiBoardUserName") as string;
+
+  useLayoutEffect(() => {
+    getTeam(userName);
+  }, [userName]);
+
+  const getTeam = async (userName: string): Promise<void> => {
+    try {
+      const params = new URLSearchParams({
+        username: userName,
+      });
+
+      const response = await fetch(
+        `${process.env.REACT_APP_BACKEND_API_PATH}/team?` + params,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error();
+      }
+
+      const data = await response.json();
+      setTeam(data.data);
+    } catch (error) {
+      console.error(error);
+      setMessage({
+        type: "error",
+        message: "Failed to get team",
+      });
+    }
+  };
 
   const {
     register,
@@ -29,62 +73,45 @@ const CreateTeamForm = (props: Props) => {
     formState: { errors },
   } = useForm<FormValues>({ mode: "onChange" });
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-      setEmblem(file);
-    } else {
-      setPreview(null);
-    }
-  };
-
-  const createTeam = async (data: FormValues): Promise<void> => {
+  const createTactics = async (data: FormValues): Promise<void> => {
     try {
-      // FormDataを作成
-      const formData = new FormData();
-      formData.append("name", data.name);
-      formData.append("description", data.description);
-      formData.append("admin", userName);
-      if (emblem) {
-        formData.append("emblem", emblem); // 画像データを追加
-      }
+      const payload = {
+        name: data.name,
+        description: data.description,
+        admin: userName,
+        team: selectedTeam,
+      };
       const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_API_PATH}/team/`,
+        `${process.env.REACT_APP_BACKEND_API_PATH}/tactics/`,
         {
           method: "POST",
-          body: formData,
+          body: JSON.stringify(payload),
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
       );
 
       if (!response.ok) {
         throw new Error();
       }
-
-      const responseJson = await response.json();
       setMessage({
         type: "success",
-        message: "Team created successfully",
+        message: "Tactics created successfully",
       });
-
     } catch (error) {
       console.error(error);
       setMessage({
         type: "error",
-        message: "Failed to create team",
+        message: "Failed to create tactics",
       });
     }
   };
 
   const onSubmit = handleSubmit(async (data: FormValues) => {
     setMessage(null);
-    await createTeam(data);
+    await createTactics(data);
     reset();
-    setPreview(null);
   });
 
   return (
@@ -103,14 +130,14 @@ const CreateTeamForm = (props: Props) => {
           <div className="flex flex-col gap-4">
             <div>
               <label className="fieldset-label block mb-1 font-bold text-base-content">
-                Team Name
+                Tactics Name
               </label>
               <input
                 {...register("name", { required: "Please enter name" })}
                 className="input w-full"
                 type="name"
                 name="name"
-                placeholder="Team Name"
+                placeholder="Tactics Name"
               />
               {errors.name && (
                 <div className="px-2 text-base font-outfit py-0.5 text-error">
@@ -137,30 +164,24 @@ const CreateTeamForm = (props: Props) => {
                 </div>
               )}
             </div>
-            {/* エンブレム */}
             <div>
               <label className="fieldset-label block mb-1 font-bold text-base-content">
-                Emblem
+                Team
               </label>
-              <input
-                {...register("emblem", { required: "Please input emblem" })}
-                className="file-input file-input-neutral"
-                type="file"
-                accept="image/*" // 画像ファイルのみ許可
-                onChange={handleFileChange} // ファイル変更時の処理
-              />
-              {errors.emblem && (
-                <div className="px-2 text-base font-outfit py-0.5 text-error">
-                  {errors.emblem.message}
-                </div>
-              )}
-            </div>
-            <div className="avatar mt-4">
-              {preview && (
-                <div className="mask mask-squircle rounded-full w-24 h-24">
-                  <img src={preview} alt="Team Emblem Preview" />
-                </div>
-              )}
+              <select
+                className="select w-full"
+                value={selectedTeam}
+                onChange={(e) => setSelectedTeam(e.target.value)} // 選択されたチームを更新
+              >
+                <option value="" disabled>
+                  Select a team
+                </option>
+                {team.map((t) => (
+                  <option key={t.name} value={t.name}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="flex justify-end">
               <button
@@ -177,4 +198,4 @@ const CreateTeamForm = (props: Props) => {
   );
 };
 
-export default CreateTeamForm;
+export default CreateTacticsForm;

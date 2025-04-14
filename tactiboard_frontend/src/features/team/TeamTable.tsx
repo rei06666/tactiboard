@@ -1,7 +1,7 @@
 import React, { useLayoutEffect } from "react";
 import TeamSettingDropdown from "./TeamSettingDropdown";
 import Message from "../../components/Message";
-import { createContext, useContext } from "react";
+import { createContext } from "react";
 
 export const MessageContext = createContext<{
   message: Message | null;

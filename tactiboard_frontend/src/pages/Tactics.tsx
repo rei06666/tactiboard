@@ -2,21 +2,21 @@ import React from "react";
 import NavBar from "../features/nav/NavBar";
 import Message from "../components/Message";
 
-import AddTeamButton from "../features/team/AddTeamButton";
-import TeamTable from "../features/team/TeamTable";
+import AddTacticsButton from "../features/tactics/AddTacticsButton";
+import TacticsTable from "../features/tactics/TacticsTable";
 
-import { Action } from "../features/team/TeamTable";
+import { Action } from "../features/tactics/TacticsTable";
 
 export type State = {
   Loading: boolean;
   Error: string | null;
-  teamNumber: number;
+  tacticsNumber: number;
 };
 
 const initialState: State = {
   Loading: true,
   Error: null,
-  teamNumber: 0,
+  tacticsNumber: 0,
 };
 
 const reducer = (state: State, action: Action): State => {
@@ -38,7 +38,7 @@ const reducer = (state: State, action: Action): State => {
   }
 };
 
-const Team: React.FC = () => {
+const Tactics: React.FC = () => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
   const userName = localStorage.getItem("TactiBoardUserName") as string;
   return (
@@ -48,9 +48,9 @@ const Team: React.FC = () => {
         <div className="mt-5 ml-5">
           <div className="flex mb-0 items-end">
             <div className="font-outfit font-bold text-2xl md:text-3xl p-2 pb-0">
-              Your Team
+              Your Tactics
             </div>
-            <AddTeamButton />
+            <AddTacticsButton />
           </div>
           {state.Error && (
             <div className="ml-2 mt-2 inline-block">
@@ -63,7 +63,7 @@ const Team: React.FC = () => {
             </div>
           )}
           <div className={state.Loading ? "hidden" : ""}>
-            <TeamTable userName={userName} dispatch={dispatch} isTeamPage={true}/>
+            <TacticsTable userName={userName} dispatch={dispatch} isTacticsPage={true}/>
           </div>
         </div>
       </div>
@@ -71,4 +71,4 @@ const Team: React.FC = () => {
   );
 };
 
-export default Team;
+export default Tactics;

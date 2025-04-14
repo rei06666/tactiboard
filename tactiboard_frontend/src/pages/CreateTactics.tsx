@@ -1,9 +1,9 @@
 import React from "react";
 import NavBar from "../features/nav/NavBar";
-import CreateTeamForm from "../features/team/CreateTeamForm";
+import CreateTacticsForm from "../features/tactics/CreateTacticsForm";
 
 
-const CreateTeam: React.FC = () => {
+const CreateTactics: React.FC = () => {
   const userName = localStorage.getItem("TactiBoardUserName") as string;
   return (
     <div className="min-h-screen bg-base-100">
@@ -12,14 +12,14 @@ const CreateTeam: React.FC = () => {
         <div className="mt-5 ml-5 mr-5">
           <div className="flex mb-0 items-end">
             <div className="font-outfit font-bold text-2xl md:text-3xl p-2 pb-0">
-              Create Team
+              Create Tactics
             </div>
           </div>
-          <CreateTeamForm />
+          <CreateTacticsForm />
         </div>
       </div>
     </div>
   );
 };
 
-export default CreateTeam;
+export default CreateTactics;
